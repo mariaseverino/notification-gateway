@@ -1,5 +1,7 @@
+import "dotenv/config";
 import "./tracing.js";
 import fastifyCors from "@fastify/cors";
+import rateLimit from "@fastify/rate-limit";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 import { trace } from "@opentelemetry/api";
@@ -13,6 +15,8 @@ import {
 } from "fastify-type-provider-zod";
 import { correlationIdPlugin } from "./plugins/correlation-id.js";
 import { routes } from "./routes/index.js";
+
+import "./broker/consumer.js";
 
 const app = fastify({
 	logger: {
@@ -50,6 +54,10 @@ app.register(fastifySwagger, {
 });
 
 app.register(fastifySwaggerUi, { routePrefix: "/docs" });
+
+app.register(rateLimit, {
+	global: false,
+});
 
 app.register(fp(correlationIdPlugin));
 app.register(routes);
