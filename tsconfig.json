@@ -19,6 +19,10 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "moduleResolution": "node16"
-  }
+    "moduleResolution": "nodenext",
+
+    "typeRoots": ["./node_modules/@types", "./types"],
+  },
+  "include": ["src/**/*", "types/**/*"]
+
 }

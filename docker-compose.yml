@@ -10,7 +10,7 @@ services:
       - "3333:3333"
     volumes:
       - .:/usr/src/app
-      - /usr/src/app/node_modules # Impede que o node_modules local sobrescreva o do container
+      - /usr/src/app/node_modules
     environment:
       - NODE_ENV=development
       - DB_HOST=postgres
@@ -23,6 +23,7 @@ services:
       - RABBITMQ_URL=amqp://notification-gateway:notification-gateway@rabbitmq:5672
       - MAILHOG_HOST=mailhog
       - MAILHOG_PORT=1025
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
     depends_on:
       postgres:
         condition: service_healthy
@@ -30,6 +31,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      otel-collector:
+        condition: service_started
 
   postgres:
     image: postgres:16-alpine
@@ -69,8 +72,8 @@ services:
       RABBITMQ_DEFAULT_USER: notification-gateway
       RABBITMQ_DEFAULT_PASS: notification-gateway
     ports:
-      - "5672:5672"   # protocolo AMQP
-      - "15672:15672" # painel web do RabbitMQ
+      - "5672:5672"
+      - "15672:15672"
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
@@ -82,8 +85,36 @@ services:
     container_name: notification-gateway-mailhog
     restart: unless-stopped
     ports:
-      - "1025:1025" # SMTP
-      - "8025:8025" # Painel web do MailHog
+      - "1025:1025"
+      - "8025:8025"
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"
+      - "4317"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
 
 volumes:
   notification-gateway_postgres_data:
