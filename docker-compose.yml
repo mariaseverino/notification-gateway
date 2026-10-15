@@ -18,6 +18,8 @@ services:
       - DB_USER=notification-gateway
       - DB_PASS=notification-gateway
       - DB_NAME=notification-gateway
+      - DB_URL=postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - RABBITMQ_URL=amqp://notification-gateway:notification-gateway@rabbitmq:5672

@@ -23,6 +23,6 @@
 
     "typeRoots": ["./node_modules/@types", "./types"],
   },
-  "include": ["src/**/*", "types/**/*"]
+  "include": ["src/**/*", "types/**/*", "drizzle.config.ts"]
 
 }
